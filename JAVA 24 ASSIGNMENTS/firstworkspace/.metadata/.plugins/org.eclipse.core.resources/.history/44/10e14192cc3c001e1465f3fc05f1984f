@@ -1,0 +1,112 @@
+package in.mindcraft.HibernateCrud;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.service.ServiceRegistry;
+import org.hibernate.service.ServiceRegistryBuilder;
+
+import java.util.Scanner;
+
+public class Tester {
+
+    public static void main(String[] args) {
+
+        Configuration con = new Configuration().configure();
+        ServiceRegistry reg = new ServiceRegistryBuilder().applySettings(con.getProperties()).buildServiceRegistry();
+        SessionFactory sf = con.buildSessionFactory(reg);
+        Session session = sf.openSession();
+
+        Scanner scanner = new Scanner(System.in);
+        int choice;
+
+        do {
+            System.out.println("Menu:");
+            System.out.println("1. Create");
+            System.out.println("2. Read");
+            System.out.println("3. Update");
+            System.out.println("4. Delete");
+            System.out.println("0. Exit");
+            System.out.print("Enter your choice: ");
+            choice = scanner.nextInt();
+
+            Transaction tx = session.beginTransaction(); 
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter Mobile ID: ");
+                    int id = scanner.nextInt();
+                    scanner.nextLine(); 
+                    System.out.print("Enter Make: ");
+                    String make = scanner.nextLine();
+                    System.out.print("Enter Cost: ");
+                    double cost = scanner.nextDouble();
+
+                    MobilePhone newMobile = new MobilePhone(id, make, cost);
+                    session.save(newMobile);
+                    tx.commit();
+                    System.out.println("Mobile Phone Created.");
+                    break;
+
+                case 2:
+                    System.out.print("Enter Mobile ID to retrieve: ");
+                    int retrieveId = scanner.nextInt();
+                    MobilePhone retrievedMobile = (MobilePhone) session.get(MobilePhone.class, retrieveId);
+                    if (retrievedMobile != null) {
+                        System.out.println("Retrieved: " + retrievedMobile);
+                    } else {
+                        System.out.println("Mobile Phone not found.");
+                    }
+                    tx.commit();
+                    break;
+
+                case 3:
+                    System.out.print("Enter Mobile ID to update: ");
+                    int updateId = scanner.nextInt();
+                    scanner.nextLine(); 
+                    MobilePhone updateMobile = (MobilePhone) session.get(MobilePhone.class, updateId);
+                    if (updateMobile != null) {
+                        System.out.print("Enter updated Make: ");
+                        String updatedMake = scanner.nextLine();
+                        System.out.print("Enter updated Cost: ");
+                        double updatedCost = scanner.nextDouble();
+                        updateMobile.setMake(updatedMake);
+                        updateMobile.setCost(updatedCost);
+                        tx.commit();
+                        System.out.println("Mobile Phone Updated.");
+                    } else {
+                        System.out.println("Mobile Phone not found.");
+                    }
+                    tx.commit();
+                    break;
+
+                case 4:
+                    System.out.print("Enter Mobile ID to delete: ");
+                    int deleteId = scanner.nextInt();
+                    MobilePhone deleteMobile = (MobilePhone) session.get(MobilePhone.class, deleteId);
+                    if (deleteMobile != null) {
+                        session.delete(deleteMobile);
+                        tx.commit();
+                        System.out.println("Mobile Phone Deleted.");
+                    } else {
+                        System.out.println("Mobile Phone not found.");
+                    }
+                    
+                    break;
+
+                case 0:
+                    System.out.println("Exiting...");
+                    break;
+
+                default:
+                    System.out.println("Invalid choice. Please select a valid option.");
+            }
+
+
+        } while (choice != 0);
+
+        session.close();
+        sf.close();
+    }
+}
